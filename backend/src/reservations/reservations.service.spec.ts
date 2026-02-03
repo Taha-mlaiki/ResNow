@@ -21,6 +21,7 @@ describe('ReservationsService', () => {
 
   const mockEventsService = {
     findOne: jest.fn(),
+    update: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -148,6 +149,136 @@ describe('ReservationsService', () => {
         service.create(createReservationDto, participantId),
       ).rejects.toThrow(
         'You already have a pending reservation for this event',
+      );
+    });
+  });
+
+  describe('confirm', () => {
+    const reservationId = 'reservation-123';
+    const pendingReservation = {
+      id: reservationId,
+      participant: { id: 'user-123' },
+      event: { id: 'event-123' },
+      status: ReservationStatus.PENDING,
+    };
+
+    const event = {
+      id: 'event-123',
+      title: 'Test Event',
+      capacity: 10,
+      reservedCount: 5,
+    };
+
+    it('should confirm a reservation successfully', async () => {
+      mockRepository.findOne.mockResolvedValue(pendingReservation);
+      mockEventsService.findOne.mockResolvedValue(event);
+      mockEventsService.update = jest.fn().mockResolvedValue(event);
+      mockRepository.save.mockResolvedValue({
+        ...pendingReservation,
+        status: ReservationStatus.CONFIRMED,
+      });
+
+      const result = await service.confirm(reservationId);
+
+      expect(repository.findOne).toHaveBeenCalledWith({
+        where: { id: reservationId },
+      });
+      expect(eventsService.findOne).toHaveBeenCalledWith(
+        pendingReservation.event.id,
+      );
+      expect(eventsService.update).toHaveBeenCalledWith(event.id, {
+        reservedCount: 6,
+      });
+      expect(result.status).toBe(ReservationStatus.CONFIRMED);
+    });
+
+    it('should throw BadRequestException if reservation not found', async () => {
+      mockRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.confirm(reservationId)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.confirm(reservationId)).rejects.toThrow(
+        'Reservation not found',
+      );
+    });
+
+    it('should throw BadRequestException if reservation is not pending', async () => {
+      const confirmedReservation = {
+        ...pendingReservation,
+        status: ReservationStatus.CONFIRMED,
+      };
+      mockRepository.findOne.mockResolvedValue(confirmedReservation);
+
+      await expect(service.confirm(reservationId)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.confirm(reservationId)).rejects.toThrow(
+        'Only pending reservations can be confirmed',
+      );
+    });
+
+    it('should throw BadRequestException if event is full', async () => {
+      const fullEvent = { ...event, reservedCount: 10 }; // capacity = 10
+      mockRepository.findOne.mockResolvedValue(pendingReservation);
+      mockEventsService.findOne.mockResolvedValue(fullEvent);
+
+      await expect(service.confirm(reservationId)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.confirm(reservationId)).rejects.toThrow(
+        'Cannot confirm reservation - event is full',
+      );
+    });
+  });
+
+  describe('refuse', () => {
+    const reservationId = 'reservation-123';
+    const pendingReservation = {
+      id: reservationId,
+      participant: { id: 'user-123' },
+      event: { id: 'event-123' },
+      status: ReservationStatus.PENDING,
+    };
+
+    it('should refuse a reservation successfully', async () => {
+      mockRepository.findOne.mockResolvedValue(pendingReservation);
+      mockRepository.save.mockResolvedValue({
+        ...pendingReservation,
+        status: ReservationStatus.REFUSED,
+      });
+
+      const result = await service.refuse(reservationId);
+
+      expect(repository.findOne).toHaveBeenCalledWith({
+        where: { id: reservationId },
+      });
+      expect(result.status).toBe(ReservationStatus.REFUSED);
+    });
+
+    it('should throw BadRequestException if reservation not found', async () => {
+      mockRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.refuse(reservationId)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.refuse(reservationId)).rejects.toThrow(
+        'Reservation not found',
+      );
+    });
+
+    it('should throw BadRequestException if reservation is not pending', async () => {
+      const refusedReservation = {
+        ...pendingReservation,
+        status: ReservationStatus.REFUSED,
+      };
+      mockRepository.findOne.mockResolvedValue(refusedReservation);
+
+      await expect(service.refuse(reservationId)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.refuse(reservationId)).rejects.toThrow(
+        'Only pending reservations can be refused',
       );
     });
   });
