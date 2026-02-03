@@ -13,6 +13,7 @@ describe('ReservationsController', () => {
     create: jest.fn(),
     confirm: jest.fn(),
     refuse: jest.fn(),
+    cancel: jest.fn(),
   };
 
   const mockUser = {
@@ -236,6 +237,73 @@ describe('ReservationsController', () => {
       );
       await expect(controller.refuse(reservationId)).rejects.toThrow(
         'Only pending reservations can be refused',
+      );
+    });
+  });
+
+  describe('cancel', () => {
+    const reservationId = 'reservation-123';
+
+    it('should cancel a reservation successfully', async () => {
+      const canceledReservation = {
+        id: reservationId,
+        participant: { id: mockUser.sub },
+        event: { id: 'event-123' },
+        status: ReservationStatus.CANCELED,
+      };
+
+      mockReservationsService.cancel = jest
+        .fn()
+        .mockResolvedValue(canceledReservation);
+
+      const result = await controller.cancel(reservationId, mockUser);
+
+      expect(service.cancel).toHaveBeenCalledWith(reservationId, mockUser.sub);
+      expect(result.status).toBe(ReservationStatus.CANCELED);
+    });
+
+    it('should throw BadRequestException if reservation not found', async () => {
+      mockReservationsService.cancel = jest
+        .fn()
+        .mockRejectedValue(new BadRequestException('Reservation not found'));
+
+      await expect(controller.cancel(reservationId, mockUser)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(controller.cancel(reservationId, mockUser)).rejects.toThrow(
+        'Reservation not found',
+      );
+    });
+
+    it('should throw BadRequestException if not reservation owner', async () => {
+      mockReservationsService.cancel = jest
+        .fn()
+        .mockRejectedValue(
+          new BadRequestException('You can only cancel your own reservations'),
+        );
+
+      await expect(controller.cancel(reservationId, mockUser)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(controller.cancel(reservationId, mockUser)).rejects.toThrow(
+        'You can only cancel your own reservations',
+      );
+    });
+
+    it('should throw BadRequestException if reservation cannot be canceled', async () => {
+      mockReservationsService.cancel = jest
+        .fn()
+        .mockRejectedValue(
+          new BadRequestException(
+            'Only pending or confirmed reservations can be canceled',
+          ),
+        );
+
+      await expect(controller.cancel(reservationId, mockUser)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(controller.cancel(reservationId, mockUser)).rejects.toThrow(
+        'Only pending or confirmed reservations can be canceled',
       );
     });
   });

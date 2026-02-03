@@ -282,4 +282,120 @@ describe('ReservationsService', () => {
       );
     });
   });
+
+  describe('cancel', () => {
+    const reservationId = 'reservation-123';
+    const participantId = 'user-123';
+    const pendingReservation = {
+      id: reservationId,
+      participant: { id: participantId },
+      event: { id: 'event-123' },
+      status: ReservationStatus.PENDING,
+    };
+
+    const confirmedReservation = {
+      ...pendingReservation,
+      status: ReservationStatus.CONFIRMED,
+    };
+
+    const event = {
+      id: 'event-123',
+      title: 'Test Event',
+      capacity: 10,
+      reservedCount: 5,
+    };
+
+    it('should cancel a pending reservation successfully', async () => {
+      mockRepository.findOne.mockResolvedValue(pendingReservation);
+      mockRepository.save.mockResolvedValue({
+        ...pendingReservation,
+        status: ReservationStatus.CANCELED,
+      });
+
+      const result = await service.cancel(reservationId, participantId);
+
+      expect(repository.findOne).toHaveBeenCalledWith({
+        where: { id: reservationId },
+      });
+      expect(result.status).toBe(ReservationStatus.CANCELED);
+      // Should not update event capacity for pending reservations
+      expect(eventsService.update).not.toHaveBeenCalled();
+    });
+
+    it('should cancel a confirmed reservation and decrement capacity', async () => {
+      mockRepository.findOne.mockResolvedValue(confirmedReservation);
+      mockEventsService.findOne.mockResolvedValue(event);
+      mockEventsService.update.mockResolvedValue(event);
+      mockRepository.save.mockResolvedValue({
+        ...confirmedReservation,
+        status: ReservationStatus.CANCELED,
+      });
+
+      const result = await service.cancel(reservationId, participantId);
+
+      expect(eventsService.findOne).toHaveBeenCalledWith(
+        confirmedReservation.event.id,
+      );
+      expect(eventsService.update).toHaveBeenCalledWith(event.id, {
+        reservedCount: 4,
+      });
+      expect(result.status).toBe(ReservationStatus.CANCELED);
+    });
+
+    it('should throw BadRequestException if reservation not found', async () => {
+      mockRepository.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.cancel(reservationId, participantId),
+      ).rejects.toThrow(BadRequestException);
+      await expect(
+        service.cancel(reservationId, participantId),
+      ).rejects.toThrow('Reservation not found');
+    });
+
+    it('should throw BadRequestException if not reservation owner', async () => {
+      mockRepository.findOne.mockResolvedValue(pendingReservation);
+
+      await expect(
+        service.cancel(reservationId, 'different-user-id'),
+      ).rejects.toThrow(BadRequestException);
+      await expect(
+        service.cancel(reservationId, 'different-user-id'),
+      ).rejects.toThrow('You can only cancel your own reservations');
+    });
+
+    it('should throw BadRequestException if reservation is refused', async () => {
+      const refusedReservation = {
+        ...pendingReservation,
+        status: ReservationStatus.REFUSED,
+      };
+      mockRepository.findOne.mockResolvedValue(refusedReservation);
+
+      await expect(
+        service.cancel(reservationId, participantId),
+      ).rejects.toThrow(BadRequestException);
+      await expect(
+        service.cancel(reservationId, participantId),
+      ).rejects.toThrow(
+        'Only pending or confirmed reservations can be canceled',
+      );
+    });
+
+    it('should throw BadRequestException if reservation is already canceled', async () => {
+      const canceledReservation = {
+        ...pendingReservation,
+        status: ReservationStatus.CANCELED,
+      };
+      mockRepository.findOne.mockResolvedValue(canceledReservation);
+
+      await expect(
+        service.cancel(reservationId, participantId),
+      ).rejects.toThrow(BadRequestException);
+      await expect(
+        service.cancel(reservationId, participantId),
+      ).rejects.toThrow(
+        'Only pending or confirmed reservations can be canceled',
+      );
+    });
+  });
 });
