@@ -1,0 +1,85 @@
+.main {
+    min-height: 100vh;
+    padding: 3rem 0;
+    background: radial-gradient(circle at 50% 0%,
+            hsl(var(--primary) / 0.1) 0%,
+            transparent 40%);
+}
+
+.backLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: hsl(var(--muted-foreground));
+    margin-bottom: 2rem;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.backLink:hover {
+    color: hsl(var(--foreground));
+}
+
+.card {
+    border-radius: var(--radius);
+    padding: 3rem;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.header {
+    border-bottom: 1px solid hsl(var(--border));
+    padding-bottom: 2rem;
+    margin-bottom: 2rem;
+}
+
+.metaRow {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.metaItem {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: hsl(var(--foreground));
+    font-size: 1.1rem;
+}
+
+.icon {
+    color: hsl(var(--primary));
+}
+
+.sectionTitle {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: hsl(var(--foreground));
+}
+
+.description {
+    line-height: 1.8;
+    color: hsl(var(--muted-foreground));
+    font-size: 1.1rem;
+    margin-bottom: 2.5rem;
+    white-space: pre-wrap;
+}
+
+.actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 3rem;
+}
+
+@media (max-width: 640px) {
+    .card {
+        padding: 1.5rem;
+    }
+
+    .metaRow {
+        flex-direction: column;
+        gap: 1rem;
+    }
+}
