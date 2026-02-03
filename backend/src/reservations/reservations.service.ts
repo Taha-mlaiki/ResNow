@@ -66,4 +66,72 @@ export class ReservationsService {
 
     return this.reservationRepository.save(reservation);
   }
+
+  /**
+   * Confirm a reservation (admin only)
+   * @param id - Reservation ID
+   * @returns Updated reservation
+   */
+  async confirm(id: string): Promise<Reservation> {
+    const reservation = await this.reservationRepository.findOne({
+      where: { id },
+    });
+
+    if (!reservation) {
+      throw new BadRequestException('Reservation not found');
+    }
+
+    // Validate reservation is pending
+    if (reservation.status !== ReservationStatus.PENDING) {
+      throw new BadRequestException(
+        'Only pending reservations can be confirmed',
+      );
+    }
+
+    // Fetch the event to check capacity
+    const event = await this.eventsService.findOne(reservation.event.id);
+
+    // Prevent overbooking
+    if (event.reservedCount >= event.capacity) {
+      throw new BadRequestException(
+        'Cannot confirm reservation - event is full',
+      );
+    }
+
+    // Update reservation status
+    reservation.status = ReservationStatus.CONFIRMED;
+
+    // Update event capacity
+    event.reservedCount += 1;
+    await this.eventsService.update(event.id, {
+      reservedCount: event.reservedCount,
+    });
+
+    return this.reservationRepository.save(reservation);
+  }
+
+  /**
+   * Refuse a reservation (admin only)
+   * @param id - Reservation ID
+   * @returns Updated reservation
+   */
+  async refuse(id: string): Promise<Reservation> {
+    const reservation = await this.reservationRepository.findOne({
+      where: { id },
+    });
+
+    if (!reservation) {
+      throw new BadRequestException('Reservation not found');
+    }
+
+    // Validate reservation is pending
+    if (reservation.status !== ReservationStatus.PENDING) {
+      throw new BadRequestException('Only pending reservations can be refused');
+    }
+
+    // Update reservation status
+    reservation.status = ReservationStatus.REFUSED;
+
+    return this.reservationRepository.save(reservation);
+  }
 }
