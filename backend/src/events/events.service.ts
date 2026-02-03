@@ -14,7 +14,7 @@ export class EventsService {
   constructor(
     @InjectRepository(Event)
     private readonly eventRepository: Repository<Event>,
-  ) { }
+  ) {}
 
   /**
    * Create a new event
