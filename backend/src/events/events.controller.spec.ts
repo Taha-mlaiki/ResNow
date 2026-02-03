@@ -3,7 +3,7 @@ import { EventsController } from './events.controller';
 import { EventsService } from './events.service';
 import { CreateEventDto, UpdateEventDto } from './dto';
 import { EventStatus } from './enums/event-status.enum';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
 
 describe('EventsController', () => {
   let controller: EventsController;
@@ -14,6 +14,8 @@ describe('EventsController', () => {
     findAll: jest.fn(),
     findOne: jest.fn(),
     update: jest.fn(),
+    publish: jest.fn(),
+    cancel: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -205,6 +207,82 @@ describe('EventsController', () => {
       await expect(
         controller.update('non-existent', updateEventDto),
       ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('publish', () => {
+    it('should publish an event', async () => {
+      const publishedEvent = {
+        id: 'event-123',
+        title: 'Test Event',
+        status: EventStatus.PUBLISHED,
+      };
+
+      mockEventsService.publish.mockResolvedValue(publishedEvent);
+
+      const result = await controller.publish('event-123');
+
+      expect(service.publish).toHaveBeenCalledWith('event-123');
+      expect(result).toEqual(publishedEvent);
+      expect(result.status).toBe(EventStatus.PUBLISHED);
+    });
+
+    it('should throw BadRequestException if event is already published', async () => {
+      mockEventsService.publish.mockRejectedValue(
+        new BadRequestException('Event is already published'),
+      );
+
+      await expect(controller.publish('event-123')).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should throw NotFoundException if event not found', async () => {
+      mockEventsService.publish.mockRejectedValue(
+        new NotFoundException('Event with ID non-existent not found'),
+      );
+
+      await expect(controller.publish('non-existent')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('cancel', () => {
+    it('should cancel an event', async () => {
+      const canceledEvent = {
+        id: 'event-123',
+        title: 'Test Event',
+        status: EventStatus.CANCELED,
+      };
+
+      mockEventsService.cancel.mockResolvedValue(canceledEvent);
+
+      const result = await controller.cancel('event-123');
+
+      expect(service.cancel).toHaveBeenCalledWith('event-123');
+      expect(result).toEqual(canceledEvent);
+      expect(result.status).toBe(EventStatus.CANCELED);
+    });
+
+    it('should throw BadRequestException if event is already canceled', async () => {
+      mockEventsService.cancel.mockRejectedValue(
+        new BadRequestException('Event is already canceled'),
+      );
+
+      await expect(controller.cancel('event-123')).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should throw NotFoundException if event not found', async () => {
+      mockEventsService.cancel.mockRejectedValue(
+        new NotFoundException('Event with ID non-existent not found'),
+      );
+
+      await expect(controller.cancel('non-existent')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

@@ -274,4 +274,110 @@ describe('EventsService', () => {
       );
     });
   });
+
+  describe('publish', () => {
+    const draftEvent = {
+      id: 'event-123',
+      title: 'Test Event',
+      status: EventStatus.DRAFT,
+      startDate: new Date(Date.now() + 86400000), // Tomorrow
+      createdBy: { id: 'user-1', email: 'user1@example.com' },
+    };
+
+    it('should publish a draft event successfully', async () => {
+      mockRepository.findOne.mockResolvedValue(draftEvent);
+      const publishedEvent = { ...draftEvent, status: EventStatus.PUBLISHED };
+      mockRepository.save.mockResolvedValue(publishedEvent);
+
+      const result = await service.publish('event-123');
+
+      expect(repository.save).toHaveBeenCalled();
+      expect(result.status).toBe(EventStatus.PUBLISHED);
+    });
+
+    it('should throw BadRequestException if event is already published', async () => {
+      const publishedEvent = { ...draftEvent, status: EventStatus.PUBLISHED };
+      mockRepository.findOne.mockResolvedValue(publishedEvent);
+
+      await expect(service.publish('event-123')).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.publish('event-123')).rejects.toThrow(
+        'Event is already published',
+      );
+    });
+
+    it('should throw BadRequestException if event is canceled', async () => {
+      const canceledEvent = { ...draftEvent, status: EventStatus.CANCELED };
+      mockRepository.findOne.mockResolvedValue(canceledEvent);
+
+      await expect(service.publish('event-123')).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.publish('event-123')).rejects.toThrow(
+        'Cannot publish a canceled event',
+      );
+    });
+
+    it('should throw BadRequestException if event has already started', async () => {
+      const pastEvent = {
+        ...draftEvent,
+        status: EventStatus.DRAFT, // Ensure it's Draft, not Published
+        startDate: new Date(Date.now() - 86400000), // Yesterday
+      };
+      mockRepository.findOne.mockResolvedValue(pastEvent);
+
+      await expect(service.publish('event-123')).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.publish('event-123')).rejects.toThrow(
+        'Cannot publish event that has already started',
+      );
+    });
+  });
+
+  describe('cancel', () => {
+    const activeEvent = {
+      id: 'event-123',
+      title: 'Test Event',
+      status: EventStatus.PUBLISHED,
+      startDate: new Date(Date.now() + 86400000),
+      createdBy: { id: 'user-1', email: 'user1@example.com' },
+    };
+
+    it('should cancel a published event successfully', async () => {
+      mockRepository.findOne.mockResolvedValue(activeEvent);
+      const canceledEvent = { ...activeEvent, status: EventStatus.CANCELED };
+      mockRepository.save.mockResolvedValue(canceledEvent);
+
+      const result = await service.cancel('event-123');
+
+      expect(repository.save).toHaveBeenCalled();
+      expect(result.status).toBe(EventStatus.CANCELED);
+    });
+
+    it('should cancel a draft event successfully', async () => {
+      const draftEvent = { ...activeEvent, status: EventStatus.DRAFT };
+      mockRepository.findOne.mockResolvedValue(draftEvent);
+      const canceledEvent = { ...draftEvent, status: EventStatus.CANCELED };
+      mockRepository.save.mockResolvedValue(canceledEvent);
+
+      const result = await service.cancel('event-123');
+
+      expect(repository.save).toHaveBeenCalled();
+      expect(result.status).toBe(EventStatus.CANCELED);
+    });
+
+    it('should throw BadRequestException if event is already canceled', async () => {
+      const canceledEvent = { ...activeEvent, status: EventStatus.CANCELED };
+      mockRepository.findOne.mockResolvedValue(canceledEvent);
+
+      await expect(service.cancel('event-123')).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.cancel('event-123')).rejects.toThrow(
+        'Event is already canceled',
+      );
+    });
+  });
 });
