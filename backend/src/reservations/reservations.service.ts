@@ -13,7 +13,7 @@ export class ReservationsService {
     @InjectRepository(Reservation)
     private readonly reservationRepository: Repository<Reservation>,
     private readonly eventsService: EventsService,
-  ) {}
+  ) { }
 
   /**
    * Create a new reservation
@@ -65,6 +65,18 @@ export class ReservationsService {
     });
 
     return this.reservationRepository.save(reservation);
+  }
+
+  /**
+   * Find a reservation by ID with all relations
+   * @param id - Reservation ID
+   * @returns Reservation with relations
+   */
+  async findOne(id: string): Promise<Reservation | null> {
+    return this.reservationRepository.findOne({
+      where: { id },
+      relations: ['participant', 'event'],
+    });
   }
 
   /**
