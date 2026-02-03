@@ -14,7 +14,7 @@ export class EventsService {
   constructor(
     @InjectRepository(Event)
     private readonly eventRepository: Repository<Event>,
-  ) {}
+  ) { }
 
   /**
    * Create a new event
@@ -57,6 +57,18 @@ export class EventsService {
    */
   async findAll(): Promise<Event[]> {
     return this.eventRepository.find({
+      relations: ['createdBy'],
+      order: { startDate: 'ASC' },
+    });
+  }
+
+  /**
+   * Find all published events (public access)
+   * @returns Array of published events
+   */
+  async findPublished(): Promise<Event[]> {
+    return this.eventRepository.find({
+      where: { status: EventStatus.PUBLISHED },
       relations: ['createdBy'],
       order: { startDate: 'ASC' },
     });
