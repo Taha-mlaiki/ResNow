@@ -79,4 +79,71 @@ export class EventsService {
 
     return event;
   }
+
+  /**
+   * Update an event
+   * @param id - Event ID
+   * @param updateEventDto - Event update data
+   * @returns Updated event
+   */
+  async update(id: string, updateEventDto: UpdateEventDto): Promise<Event> {
+    const event = await this.findOne(id);
+
+    // Validate dates if provided
+    if (updateEventDto.startDate || updateEventDto.endDate) {
+      const startDate = updateEventDto.startDate
+        ? new Date(updateEventDto.startDate)
+        : event.startDate;
+      const endDate = updateEventDto.endDate
+        ? new Date(updateEventDto.endDate)
+        : event.endDate;
+
+      if (endDate <= startDate) {
+        throw new BadRequestException('End date must be after start date');
+      }
+
+      if (startDate < new Date() && updateEventDto.startDate) {
+        throw new BadRequestException('Start date cannot be in the past');
+      }
+
+      if (updateEventDto.startDate) {
+        event.startDate = startDate;
+      }
+      if (updateEventDto.endDate) {
+        event.endDate = endDate;
+      }
+    }
+
+    // Validate capacity if provided
+    if (updateEventDto.capacity !== undefined) {
+      if (updateEventDto.capacity < event.reservedCount) {
+        throw new BadRequestException(
+          `Capacity cannot be less than current reservations (${event.reservedCount})`,
+        );
+      }
+      event.capacity = updateEventDto.capacity;
+    }
+
+    // Validate status transitions
+    if (updateEventDto.status) {
+      // Cannot publish event in the past
+      if (
+        updateEventDto.status === EventStatus.PUBLISHED &&
+        event.startDate < new Date()
+      ) {
+        throw new BadRequestException(
+          'Cannot publish event that has already started',
+        );
+      }
+      event.status = updateEventDto.status;
+    }
+
+    // Update other fields
+    if (updateEventDto.title) event.title = updateEventDto.title;
+    if (updateEventDto.description)
+      event.description = updateEventDto.description;
+    if (updateEventDto.location) event.location = updateEventDto.location;
+
+    return this.eventRepository.save(event);
+  }
 }
