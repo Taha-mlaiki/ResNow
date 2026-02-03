@@ -134,4 +134,51 @@ export class ReservationsService {
 
     return this.reservationRepository.save(reservation);
   }
+
+  /**
+   * Cancel a reservation (participant only)
+   * @param id - Reservation ID
+   * @param participantId - ID of the user canceling the reservation
+   * @returns Updated reservation
+   */
+  async cancel(id: string, participantId: string): Promise<Reservation> {
+    const reservation = await this.reservationRepository.findOne({
+      where: { id },
+    });
+
+    if (!reservation) {
+      throw new BadRequestException('Reservation not found');
+    }
+
+    // Verify ownership
+    if (reservation.participant.id !== participantId) {
+      throw new BadRequestException(
+        'You can only cancel your own reservations',
+      );
+    }
+
+    // Validate reservation can be canceled
+    if (
+      reservation.status !== ReservationStatus.PENDING &&
+      reservation.status !== ReservationStatus.CONFIRMED
+    ) {
+      throw new BadRequestException(
+        'Only pending or confirmed reservations can be canceled',
+      );
+    }
+
+    // If reservation was confirmed, decrement event capacity
+    if (reservation.status === ReservationStatus.CONFIRMED) {
+      const event = await this.eventsService.findOne(reservation.event.id);
+      event.reservedCount -= 1;
+      await this.eventsService.update(event.id, {
+        reservedCount: event.reservedCount,
+      });
+    }
+
+    // Update reservation status
+    reservation.status = ReservationStatus.CANCELED;
+
+    return this.reservationRepository.save(reservation);
+  }
 }
