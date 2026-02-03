@@ -144,6 +144,50 @@ describe('EventsService', () => {
     });
   });
 
+  describe('findPublished', () => {
+    it('should return only published events', async () => {
+      const publishedEvents = [
+        {
+          id: 'event-1',
+          title: 'Published Event 1',
+          status: EventStatus.PUBLISHED,
+          startDate: new Date(),
+          createdBy: { id: 'user-1', email: 'user1@example.com' },
+        },
+        {
+          id: 'event-2',
+          title: 'Published Event 2',
+          status: EventStatus.PUBLISHED,
+          startDate: new Date(),
+          createdBy: { id: 'user-2', email: 'user2@example.com' },
+        },
+      ];
+
+      mockRepository.find.mockResolvedValue(publishedEvents);
+
+      const result = await service.findPublished();
+
+      expect(repository.find).toHaveBeenCalledWith({
+        where: { status: EventStatus.PUBLISHED },
+        relations: ['createdBy'],
+        order: { startDate: 'ASC' },
+      });
+      expect(result).toEqual(publishedEvents);
+      expect(result).toHaveLength(2);
+      expect(
+        result.every((event) => event.status === EventStatus.PUBLISHED),
+      ).toBe(true);
+    });
+
+    it('should return empty array if no published events exist', async () => {
+      mockRepository.find.mockResolvedValue([]);
+
+      const result = await service.findPublished();
+
+      expect(result).toEqual([]);
+    });
+  });
+
   describe('findOne', () => {
     it('should return an event by ID', async () => {
       const mockEvent = {

@@ -12,6 +12,7 @@ describe('EventsController', () => {
   const mockEventsService = {
     create: jest.fn(),
     findAll: jest.fn(),
+    findPublished: jest.fn(),
     findOne: jest.fn(),
     update: jest.fn(),
     publish: jest.fn(),
@@ -90,6 +91,41 @@ describe('EventsController', () => {
       await controller.create(createEventDto, mockUser);
 
       expect(service.create).toHaveBeenCalledWith(createEventDto, mockUser.sub);
+    });
+  });
+
+  describe('findPublished', () => {
+    it('should return only published events', async () => {
+      const publishedEvents = [
+        {
+          id: 'event-1',
+          title: 'Published Event 1',
+          status: EventStatus.PUBLISHED,
+          createdBy: { id: 'user-1', email: 'user1@example.com' },
+        },
+        {
+          id: 'event-2',
+          title: 'Published Event 2',
+          status: EventStatus.PUBLISHED,
+          createdBy: { id: 'user-2', email: 'user2@example.com' },
+        },
+      ];
+
+      mockEventsService.findPublished.mockResolvedValue(publishedEvents);
+
+      const result = await controller.findPublished();
+
+      expect(service.findPublished).toHaveBeenCalled();
+      expect(result).toEqual(publishedEvents);
+      expect(result).toHaveLength(2);
+    });
+
+    it('should return empty array if no published events exist', async () => {
+      mockEventsService.findPublished.mockResolvedValue([]);
+
+      const result = await controller.findPublished();
+
+      expect(result).toEqual([]);
     });
   });
 
