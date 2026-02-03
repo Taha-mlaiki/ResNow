@@ -13,7 +13,7 @@ export class ReservationsService {
     @InjectRepository(Reservation)
     private readonly reservationRepository: Repository<Reservation>,
     private readonly eventsService: EventsService,
-  ) {}
+  ) { }
 
   /**
    * Create a new reservation
@@ -76,6 +76,30 @@ export class ReservationsService {
     return this.reservationRepository.findOne({
       where: { id },
       relations: ['participant', 'event'],
+    });
+  }
+
+  /**
+   * Find all reservations (admin only)
+   * @returns Array of reservations
+   */
+  async findAll(): Promise<Reservation[]> {
+    return this.reservationRepository.find({
+      relations: ['participant', 'event'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  /**
+   * Find all reservations for a specific user
+   * @param userId - Participant ID
+   * @returns Array of reservations
+   */
+  async findAllByUser(userId: string): Promise<Reservation[]> {
+    return this.reservationRepository.find({
+      where: { participant: { id: userId } },
+      relations: ['event'],
+      order: { createdAt: 'DESC' },
     });
   }
 

@@ -14,7 +14,7 @@ export class EventsService {
   constructor(
     @InjectRepository(Event)
     private readonly eventRepository: Repository<Event>,
-  ) {}
+  ) { }
 
   /**
    * Create a new event
@@ -72,6 +72,24 @@ export class EventsService {
       relations: ['createdBy'],
       order: { startDate: 'ASC' },
     });
+  }
+
+  /**
+   * Find a single published event
+   * @param id - Event ID
+   * @returns Published event
+   */
+  async findPublishedOne(id: string): Promise<Event> {
+    const event = await this.eventRepository.findOne({
+      where: { id, status: EventStatus.PUBLISHED },
+      relations: ['createdBy'],
+    });
+
+    if (!event) {
+      throw new NotFoundException(`Event with ID ${id} not found`);
+    }
+
+    return event;
   }
 
   /**

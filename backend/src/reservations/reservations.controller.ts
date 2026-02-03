@@ -25,7 +25,7 @@ export class ReservationsController {
   constructor(
     private readonly reservationsService: ReservationsService,
     private readonly pdfService: PdfService,
-  ) {}
+  ) { }
 
   @Post()
   @Roles(UserRole.PARTICIPANT)
@@ -35,6 +35,18 @@ export class ReservationsController {
     @GetUser() user: any,
   ) {
     return this.reservationsService.create(createReservationDto, user.sub);
+  }
+
+  @Get('my')
+  @Roles(UserRole.PARTICIPANT)
+  async findMyReservations(@GetUser() user: any) {
+    return this.reservationsService.findAllByUser(user.sub);
+  }
+
+  @Get()
+  @Roles(UserRole.ADMIN)
+  async findAll() {
+    return this.reservationsService.findAll();
   }
 
   @Post(':id/confirm')
