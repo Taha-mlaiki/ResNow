@@ -1,0 +1,58 @@
+.main {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: radial-gradient(circle at 50% 0%,
+      hsl(var(--primary) / 0.15) 0%,
+      transparent 60%);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2rem 0;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 6rem 0;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 4rem;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 1.5rem;
+}
+
+.subtitle {
+  font-size: 1.25rem;
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 2.5rem;
+  line-height: 1.6;
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .title {
+    font-size: 3rem;
+  }
+}

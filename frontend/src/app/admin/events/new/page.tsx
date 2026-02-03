@@ -1,31 +1,10 @@
 'use client';
 
 import { createEventAction } from '@/lib/actions';
-import { useFormState } from 'react-dom';
-import { SubmitButton } from '@/components/SubmitButton'; // Ensure this exists or simple button
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
-const initialState = {
-    error: '',
-    success: false,
-};
-
 export default function CreateEventPage() {
-    // Use useActionState in React 19 / Next 14+? 
-    // It's useFormState from react-dom.
-    // const [state, formAction] = useFormState(createEventAction, initialState);
-    // Warning: Server Action `createEventAction` must match signature (state, formData)
-    // My current `createEventAction` signature is (formData).
-    // I need to update it or wrap it.
-    // If useFormState acts on it, the action receives (prevState, formData).
-
-    // I'll wrap it here or use a client handler calling the action.
-    // Using client handler is simpler for redirect logic if needed inside component 
-    // (though action handles redirect).
-
-    // Let's use simple form action for now:
-
     return (
         <main className="container" style={{ padding: '4rem 0' }}>
             <Link href="/admin/events" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: '2rem', color: 'hsl(var(--muted-foreground))' }}>

@@ -170,7 +170,7 @@ describe('ReservationsService', () => {
     };
 
     it('should confirm a reservation successfully', async () => {
-      mockRepository.findOne.mockResolvedValue(pendingReservation);
+      mockRepository.findOne.mockResolvedValue({ ...pendingReservation });
       mockEventsService.findOne.mockResolvedValue(event);
       mockEventsService.update = jest.fn().mockResolvedValue(event);
       mockRepository.save.mockResolvedValue({
@@ -220,7 +220,7 @@ describe('ReservationsService', () => {
 
     it('should throw BadRequestException if event is full', async () => {
       const fullEvent = { ...event, reservedCount: 10 }; // capacity = 10
-      mockRepository.findOne.mockResolvedValue(pendingReservation);
+      mockRepository.findOne.mockResolvedValue({ ...pendingReservation });
       mockEventsService.findOne.mockResolvedValue(fullEvent);
 
       await expect(service.confirm(reservationId)).rejects.toThrow(

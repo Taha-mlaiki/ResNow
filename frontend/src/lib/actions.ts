@@ -119,7 +119,9 @@ export async function refuseReservationAction(id: string) {
 export async function createEventAction(formData: FormData) {
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
-    if (!token) return { error: 'Unauthorized' };
+    if (!token) {
+        redirect('/login');
+    }
 
     const data = {
         title: formData.get('title'),
@@ -130,28 +132,25 @@ export async function createEventAction(formData: FormData) {
         capacity: Number(formData.get('capacity')),
     };
 
-    try {
-        const res = await fetch(`${API_URL}/events`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify(data),
-        });
+    const res = await fetch(`${API_URL}/events`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(data),
+    });
 
-        if (!res.ok) {
-            const errorData = await res.json();
-            return { error: errorData.message || 'Failed to create event' };
-        }
-
-        revalidatePath('/admin/events');
-        revalidatePath('/events');
-        return { success: true };
-    } catch (e) {
-        return { error: 'Failed to create event' };
+    if (!res.ok) {
+        // For now just throw - in production use proper error handling
+        throw new Error('Failed to create event');
     }
+
+    revalidatePath('/admin/events');
+    revalidatePath('/events');
+    redirect('/admin/events');
 }
+
 
 export async function publishEventAction(id: string) {
     const cookieStore = await cookies();

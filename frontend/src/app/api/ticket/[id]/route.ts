@@ -5,8 +5,9 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
+    const { id } = await params;
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
@@ -15,7 +16,7 @@ export async function GET(
     }
 
     try {
-        const res = await fetch(`${API_URL}/reservations/${params.id}/ticket`, {
+        const res = await fetch(`${API_URL}/reservations/${id}/ticket`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
@@ -23,15 +24,13 @@ export async function GET(
         });
 
         if (!res.ok) {
-            // Pass through error
             return new NextResponse(res.statusText, { status: res.status });
         }
 
-        // Get PDF as blob/buffer
         const blob = await res.blob();
         const headers = new Headers();
         headers.set('Content-Type', 'application/pdf');
-        headers.set('Content-Disposition', `attachment; filename="ticket-${params.id}.pdf"`);
+        headers.set('Content-Disposition', `attachment; filename="ticket-${id}.pdf"`);
 
         return new NextResponse(blob, {
             status: 200,

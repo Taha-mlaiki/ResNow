@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { AuthGuard } from './auth/guards/auth.guard';
 import { EventsModule } from './events/events.module';
 import { ReservationsModule } from './reservations/reservations.module';
+import { PdfService } from './pdf/pdf.service';
 
 @Module({
   imports: [UsersModule, AuthModule, EventsModule, ReservationsModule],
@@ -17,6 +18,7 @@ import { ReservationsModule } from './reservations/reservations.module';
       provide: APP_GUARD,
       useClass: AuthGuard,
     },
+    PdfService,
   ],
 })
 export class AppModule {}

@@ -2,7 +2,7 @@ import { getSession } from '@/lib/auth';
 import { getAllEvents } from '@/lib/api';
 import Link from 'next/link';
 import { Calendar, MapPin } from 'lucide-react';
-import styles from '@/app/admin/page.module.css';
+import styles from '@/app/dashboard/page.module.css';
 import { EventListActions } from '@/components/EventListActions';
 
 export const dynamic = 'force-dynamic';
