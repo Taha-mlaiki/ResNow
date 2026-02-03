@@ -12,7 +12,7 @@ import {
 import { EventsService } from './events.service';
 import { CreateEventDto, UpdateEventDto } from './dto';
 import { RolesGuard } from '../auth/guards';
-import { Roles, GetUser } from '../auth/decorators';
+import { Roles, GetUser, Public } from '../auth/decorators';
 import { UserRole } from '../users/enums/user-role.enum';
 
 @Controller('events')
@@ -25,6 +25,12 @@ export class EventsController {
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createEventDto: CreateEventDto, @GetUser() user: any) {
     return this.eventsService.create(createEventDto, user.sub);
+  }
+
+  @Get('public')
+  @Public()
+  async findPublished() {
+    return this.eventsService.findPublished();
   }
 
   @Get()
