@@ -4,16 +4,23 @@ import { ReservationsService } from './reservations.service';
 import { CreateReservationDto } from './dto';
 import { ReservationStatus } from './enums/reservation-status.enum';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { PdfService } from '../pdf/pdf.service';
 
 describe('ReservationsController', () => {
   let controller: ReservationsController;
   let service: ReservationsService;
+  let pdfService: PdfService;
 
   const mockReservationsService = {
     create: jest.fn(),
     confirm: jest.fn(),
     refuse: jest.fn(),
     cancel: jest.fn(),
+    findOne: jest.fn(),
+  };
+
+  const mockPdfService = {
+    generateTicket: jest.fn(),
   };
 
   const mockUser = {
@@ -30,11 +37,16 @@ describe('ReservationsController', () => {
           provide: ReservationsService,
           useValue: mockReservationsService,
         },
+        {
+          provide: PdfService,
+          useValue: mockPdfService,
+        },
       ],
     }).compile();
 
     controller = module.get<ReservationsController>(ReservationsController);
     service = module.get<ReservationsService>(ReservationsService);
+    pdfService = module.get<PdfService>(PdfService);
 
     jest.clearAllMocks();
   });
@@ -304,6 +316,147 @@ describe('ReservationsController', () => {
       );
       await expect(controller.cancel(reservationId, mockUser)).rejects.toThrow(
         'Only pending or confirmed reservations can be canceled',
+      );
+    });
+  });
+
+  describe('downloadTicket', () => {
+    const reservationId = 'reservation-123';
+    const mockReservation = {
+      id: reservationId,
+      status: ReservationStatus.CONFIRMED,
+      createdAt: new Date(),
+      participant: {
+        id: mockUser.sub,
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john.doe@example.com',
+      },
+      event: {
+        id: 'event-123',
+        title: 'Tech Conference',
+        description: 'Annual tech conference',
+        startDate: new Date(),
+        endDate: new Date(),
+        location: 'Convention Center',
+      },
+    };
+
+    const mockResponse = {
+      setHeader: jest.fn(),
+      send: jest.fn(),
+    } as any;
+
+    beforeEach(() => {
+      mockReservationsService.findOne.mockResolvedValue(mockReservation);
+      mockPdfService.generateTicket.mockResolvedValue(
+        Buffer.from('PDF content'),
+      );
+    });
+
+    it('should download ticket for confirmed reservation', async () => {
+      await controller.downloadTicket(reservationId, mockUser, mockResponse);
+
+      expect(mockReservationsService.findOne).toHaveBeenCalledWith(
+        reservationId,
+      );
+      expect(mockPdfService.generateTicket).toHaveBeenCalledWith(
+        mockReservation,
+      );
+      expect(mockResponse.setHeader).toHaveBeenCalledWith(
+        'Content-Type',
+        'application/pdf',
+      );
+      expect(mockResponse.setHeader).toHaveBeenCalledWith(
+        'Content-Disposition',
+        `attachment; filename=ticket-${reservationId}.pdf`,
+      );
+      expect(mockResponse.send).toHaveBeenCalledWith(
+        Buffer.from('PDF content'),
+      );
+    });
+
+    it('should throw BadRequestException if reservation not found', async () => {
+      mockReservationsService.findOne.mockResolvedValue(null);
+
+      await expect(
+        controller.downloadTicket(reservationId, mockUser, mockResponse),
+      ).rejects.toThrow(BadRequestException);
+      await expect(
+        controller.downloadTicket(reservationId, mockUser, mockResponse),
+      ).rejects.toThrow('Reservation not found');
+    });
+
+    it('should throw BadRequestException if user is not the owner', async () => {
+      const otherUserReservation = {
+        ...mockReservation,
+        participant: {
+          ...mockReservation.participant,
+          id: 'other-user-id',
+        },
+      };
+      mockReservationsService.findOne.mockResolvedValue(otherUserReservation);
+
+      await expect(
+        controller.downloadTicket(reservationId, mockUser, mockResponse),
+      ).rejects.toThrow(BadRequestException);
+      await expect(
+        controller.downloadTicket(reservationId, mockUser, mockResponse),
+      ).rejects.toThrow(
+        'You can only download tickets for your own reservations',
+      );
+    });
+
+    it('should throw BadRequestException if reservation is not confirmed', async () => {
+      const pendingReservation = {
+        ...mockReservation,
+        status: ReservationStatus.PENDING,
+      };
+      mockReservationsService.findOne.mockResolvedValue(pendingReservation);
+
+      await expect(
+        controller.downloadTicket(reservationId, mockUser, mockResponse),
+      ).rejects.toThrow(BadRequestException);
+      await expect(
+        controller.downloadTicket(reservationId, mockUser, mockResponse),
+      ).rejects.toThrow(
+        'Tickets can only be downloaded for confirmed reservations',
+      );
+    });
+
+    it('should throw BadRequestException for refused reservation', async () => {
+      const refusedReservation = {
+        ...mockReservation,
+        status: ReservationStatus.REFUSED,
+      };
+      mockReservationsService.findOne.mockResolvedValue(refusedReservation);
+
+      await expect(
+        controller.downloadTicket(reservationId, mockUser, mockResponse),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException for canceled reservation', async () => {
+      const canceledReservation = {
+        ...mockReservation,
+        status: ReservationStatus.CANCELED,
+      };
+      mockReservationsService.findOne.mockResolvedValue(canceledReservation);
+
+      await expect(
+        controller.downloadTicket(reservationId, mockUser, mockResponse),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should set correct Content-Length header', async () => {
+      const pdfBuffer = Buffer.from('PDF content with specific length');
+      mockPdfService.generateTicket.mockResolvedValue(pdfBuffer);
+
+      await controller.downloadTicket(reservationId, mockUser, mockResponse);
+
+      expect(mockResponse.setHeader).toHaveBeenCalledWith(
+        'Content-Length',
+        pdfBuffer.length,
       );
     });
   });

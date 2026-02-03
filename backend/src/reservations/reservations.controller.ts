@@ -25,7 +25,7 @@ export class ReservationsController {
   constructor(
     private readonly reservationsService: ReservationsService,
     private readonly pdfService: PdfService,
-  ) { }
+  ) {}
 
   @Post()
   @Roles(UserRole.PARTICIPANT)

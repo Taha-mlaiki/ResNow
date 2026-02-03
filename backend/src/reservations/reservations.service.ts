@@ -13,7 +13,7 @@ export class ReservationsService {
     @InjectRepository(Reservation)
     private readonly reservationRepository: Repository<Reservation>,
     private readonly eventsService: EventsService,
-  ) { }
+  ) {}
 
   /**
    * Create a new reservation
