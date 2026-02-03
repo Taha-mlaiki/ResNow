@@ -173,4 +173,21 @@ export class EventsService {
     event.status = EventStatus.PUBLISHED;
     return this.eventRepository.save(event);
   }
+
+  /**
+   * Cancel an event
+   * @param id - Event ID
+   * @returns Canceled event
+   */
+  async cancel(id: string): Promise<Event> {
+    const event = await this.findOne(id);
+
+    // Validate event can be canceled
+    if (event.status === EventStatus.CANCELED) {
+      throw new BadRequestException('Event is already canceled');
+    }
+
+    event.status = EventStatus.CANCELED;
+    return this.eventRepository.save(event);
+  }
 }
