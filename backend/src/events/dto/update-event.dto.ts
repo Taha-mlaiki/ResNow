@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateEventDto } from './create-event.dto';
-import { IsEnum, IsOptional } from 'class-validator';
+import { IsEnum, IsOptional, IsInt, Min } from 'class-validator';
 import { EventStatus } from '../enums/event-status.enum';
 
 export class UpdateEventDto extends PartialType(CreateEventDto) {
@@ -9,4 +9,9 @@ export class UpdateEventDto extends PartialType(CreateEventDto) {
     message: 'Status must be Draft, Published, or Canceled',
   })
   status?: EventStatus;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  reservedCount?: number;
 }
