@@ -146,4 +146,31 @@ export class EventsService {
 
     return this.eventRepository.save(event);
   }
+
+  /**
+   * Publish an event
+   * @param id - Event ID
+   * @returns Published event
+   */
+  async publish(id: string): Promise<Event> {
+    const event = await this.findOne(id);
+
+    // Validate event can be published
+    if (event.status === EventStatus.PUBLISHED) {
+      throw new BadRequestException('Event is already published');
+    }
+
+    if (event.status === EventStatus.CANCELED) {
+      throw new BadRequestException('Cannot publish a canceled event');
+    }
+
+    if (event.startDate < new Date()) {
+      throw new BadRequestException(
+        'Cannot publish event that has already started',
+      );
+    }
+
+    event.status = EventStatus.PUBLISHED;
+    return this.eventRepository.save(event);
+  }
 }
