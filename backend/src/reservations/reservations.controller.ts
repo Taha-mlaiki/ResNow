@@ -41,4 +41,11 @@ export class ReservationsController {
   async refuse(@Param('id') id: string) {
     return this.reservationsService.refuse(id);
   }
+
+  @Post(':id/cancel')
+  @Roles(UserRole.PARTICIPANT)
+  @HttpCode(HttpStatus.OK)
+  async cancel(@Param('id') id: string, @GetUser() user: any) {
+    return this.reservationsService.cancel(id, user.sub);
+  }
 }
