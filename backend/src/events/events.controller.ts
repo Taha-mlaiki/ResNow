@@ -47,4 +47,18 @@ export class EventsController {
   ) {
     return this.eventsService.update(id, updateEventDto);
   }
+
+  @Post(':id/publish')
+  @Roles(UserRole.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  async publish(@Param('id') id: string) {
+    return this.eventsService.publish(id);
+  }
+
+  @Post(':id/cancel')
+  @Roles(UserRole.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  async cancel(@Param('id') id: string) {
+    return this.eventsService.cancel(id);
+  }
 }
