@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -8,9 +9,17 @@ import { AuthGuard } from './auth/guards/auth.guard';
 import { EventsModule } from './events/events.module';
 import { ReservationsModule } from './reservations/reservations.module';
 import { PdfService } from './pdf/pdf.service';
+import { DatabaseModule } from './database/database.module';
 
 @Module({
-  imports: [UsersModule, AuthModule, EventsModule, ReservationsModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    DatabaseModule,
+    UsersModule,
+    AuthModule,
+    EventsModule,
+    ReservationsModule,
+  ],
   controllers: [AppController],
   providers: [
     AppService,
@@ -21,4 +30,5 @@ import { PdfService } from './pdf/pdf.service';
     PdfService,
   ],
 })
-export class AppModule {}
+export class AppModule { }
+
