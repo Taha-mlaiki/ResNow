@@ -7,16 +7,16 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
 import Link from 'next/link';
-import { Calendar, Users, Ticket, Plus, Edit2, CheckCircle } from 'lucide-react';
+import { Calendar, Users, Ticket, Plus, Edit2, CheckCircle, XCircle } from 'lucide-react';
 import { useState } from 'react';
-import { publishEventAction } from '@/lib/actions';
+import { publishEventAction, confirmReservationAction, refuseReservationAction } from '@/lib/actions';
 import { EventStatus, ReservationStatus } from '@/types/enums';
 import { Event } from '@/types/event';
 
 interface AdminDashboardClientProps {
     token: string;
     initialEvents: Event[];
-    initialReservations: any[]; // Keeping any for reservations for now as Reservation type might strictly need import
+    initialReservations: any[];
 }
 
 export function AdminDashboardClient({ token, initialEvents, initialReservations }: AdminDashboardClientProps) {
@@ -39,7 +39,7 @@ export function AdminDashboardClient({ token, initialEvents, initialReservations
         initialData: initialReservations,
     });
 
-    // Mutation for Publishing Event
+    // Publish Mutation
     const publishMutation = useMutation({
         mutationFn: async (id: string) => {
             const res = await publishEventAction(id);
@@ -48,20 +48,39 @@ export function AdminDashboardClient({ token, initialEvents, initialReservations
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['events'] });
-            toast({
-                title: "Event Published",
-                description: "The event is now visible to the public.",
-            });
+            toast({ title: "Event Published", description: "The event is now public." });
             setIsPublishDialogOpen(false);
         },
-        onError: () => {
-            toast({
-                variant: "destructive",
-                title: "Error",
-                description: "Failed to publish event.",
-            });
-        }
+        onError: () => toast({ variant: "destructive", title: "Error", description: "Failed to publish." })
     });
+
+    // Reservation Mutations
+    const confirmMutation = useMutation({
+        mutationFn: async (id: string) => {
+            const res = await confirmReservationAction(id);
+            if (res?.error) throw new Error(res.error);
+            return res;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['reservations'] });
+            toast({ title: "Reservation Confirmed", description: "User has been notified." });
+        },
+        onError: () => toast({ variant: "destructive", title: "Error", description: "Failed to confirm." })
+    });
+
+    const refuseMutation = useMutation({
+        mutationFn: async (id: string) => {
+            const res = await refuseReservationAction(id);
+            if (res?.error) throw new Error(res.error);
+            return res;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['reservations'] });
+            toast({ title: "Reservation Refused", description: "User has been notified." });
+        },
+        onError: () => toast({ variant: "destructive", title: "Error", description: "Failed to refuse." })
+    });
+
 
     const stats = {
         totalReservations: reservations.length,
@@ -120,17 +139,17 @@ export function AdminDashboardClient({ token, initialEvents, initialReservations
                 </Card>
             </div>
 
-            {/* Events List */}
+
+            {/* Content Grid */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                {/* Events List (Left/Start) */}
                 <Card className="col-span-4">
                     <CardHeader>
                         <CardTitle>Recent Events</CardTitle>
-                        <CardDescription>
-                            Manage your events and view their status.
-                        </CardDescription>
+                        <CardDescription>Manage your events and view their status.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {events.map((event: any) => (
+                        {events.slice(0, 4).map((event: any) => (
                             <div key={event.id} className="flex items-center justify-between p-4 border rounded-lg bg-card hover:bg-accent/50 transition-colors">
                                 <div className="space-y-1">
                                     <p className="font-medium leading-none">{event.title}</p>
@@ -161,7 +180,7 @@ export function AdminDashboardClient({ token, initialEvents, initialReservations
                                                 <DialogHeader>
                                                     <DialogTitle>Publish Event?</DialogTitle>
                                                     <DialogDescription>
-                                                        This will make "{event.title}" visible to all users. This action can be reversed by canceling the event.
+                                                        This will make "{event.title}" visible to all users.
                                                     </DialogDescription>
                                                 </DialogHeader>
                                                 <DialogFooter>
@@ -182,18 +201,16 @@ export function AdminDashboardClient({ token, initialEvents, initialReservations
                     </CardContent>
                 </Card>
 
-                {/* Reservations List */}
+                {/* Reservations List (Right/End) */}
                 <Card className="col-span-3">
                     <CardHeader>
                         <CardTitle>Recent Reservations</CardTitle>
-                        <CardDescription>
-                            Latest booking requests.
-                        </CardDescription>
+                        <CardDescription>Latest booking requests.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            {reservations.slice(0, 5).map((reservation: any) => (
-                                <div key={reservation.id} className="flex items-center justify-between">
+                            {reservations.slice(0, 4).map((reservation: any) => (
+                                <div key={reservation.id} className="flex items-center justify-between p-2 border-b last:border-0">
                                     <div className="space-y-1">
                                         <p className="text-sm font-medium leading-none">
                                             {reservation.user?.firstName} {reservation.user?.lastName}
@@ -201,12 +218,156 @@ export function AdminDashboardClient({ token, initialEvents, initialReservations
                                         <p className="text-xs text-muted-foreground">
                                             {reservation.event?.title}
                                         </p>
+                                        <div className={`inline-block text-[10px] px-2 py-0.5 rounded-full ${reservation.status === 'Confirmed' ? 'bg-green-500/10 text-green-500' :
+                                            reservation.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500' :
+                                                'bg-red-500/10 text-red-500'
+                                            }`}>
+                                            {reservation.status}
+                                        </div>
                                     </div>
-                                    <div className={`text-xs px-2 py-1 rounded-full ${reservation.status === 'Confirmed' ? 'bg-green-500/10 text-green-500' :
-                                        reservation.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500' :
-                                            'bg-red-500/10 text-red-500'
-                                        }`}>
-                                        {reservation.status}
+
+                                    <div className="flex items-center gap-1">
+                                        {reservation.status === ReservationStatus.PENDING && (
+                                            <>
+                                                <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-100"
+                                                    onClick={() => confirmMutation.mutate(reservation.id)}
+                                                    disabled={confirmMutation.isPending}
+                                                >
+                                                    <CheckCircle className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-100"
+                                                    onClick={() => refuseMutation.mutate(reservation.id)}
+                                                    disabled={refuseMutation.isPending}
+                                                >
+                                                    <XCircle className="h-4 w-4" />
+                                                </Button>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                            {reservations.length === 0 && (
+                                <p className="text-sm text-muted-foreground text-center py-4">No reservations yet.</p>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+            {/* Content Grid */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                {/* Events List (Left/Start) */}
+                <Card className="col-span-4">
+                    <CardHeader>
+                        <CardTitle>Recent Events</CardTitle>
+                        <CardDescription>Manage your events and view their status.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {events.slice(0, 4).map((event: any) => (
+                            <div key={event.id} className="flex items-center justify-between p-4 border rounded-lg bg-card hover:bg-accent/50 transition-colors">
+                                <div className="space-y-1">
+                                    <p className="font-medium leading-none">{event.title}</p>
+                                    <div className="flex items-center gap-2 pt-1">
+                                        <span className={`text-xs px-2 py-0.5 rounded-full ${event.status === EventStatus.PUBLISHED
+                                            ? 'bg-green-500/10 text-green-500'
+                                            : 'bg-yellow-500/10 text-yellow-500'
+                                            }`}>
+                                            {event.status}
+                                        </span>
+                                        <span className="text-xs text-muted-foreground">
+                                            {new Date(event.startDate).toLocaleDateString()}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    {event.status === EventStatus.DRAFT && (
+                                        <Dialog open={isPublishDialogOpen && selectedEventId === event.id} onOpenChange={(open) => {
+                                            setIsPublishDialogOpen(open);
+                                            if (!open) setSelectedEventId(null);
+                                        }}>
+                                            <DialogTrigger asChild>
+                                                <Button variant="outline" size="sm" onClick={() => setSelectedEventId(event.id)}>
+                                                    <CheckCircle className="mr-2 h-3.5 w-3.5" /> Publish
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent>
+                                                <DialogHeader>
+                                                    <DialogTitle>Publish Event?</DialogTitle>
+                                                    <DialogDescription>
+                                                        This will make "{event.title}" visible to all users.
+                                                    </DialogDescription>
+                                                </DialogHeader>
+                                                <DialogFooter>
+                                                    <Button variant="outline" onClick={() => setIsPublishDialogOpen(false)}>Cancel</Button>
+                                                    <Button onClick={() => publishMutation.mutate(event.id)}>Confirm Publish</Button>
+                                                </DialogFooter>
+                                            </DialogContent>
+                                        </Dialog>
+                                    )}
+                                    <Button variant="ghost" size="sm" asChild>
+                                        <Link href={`/events/${event.id}/edit`}>
+                                            <Edit2 className="h-4 w-4" />
+                                        </Link>
+                                    </Button>
+                                </div>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+
+                {/* Reservations List (Right/End) */}
+                <Card className="col-span-3">
+                    <CardHeader>
+                        <CardTitle>Recent Reservations</CardTitle>
+                        <CardDescription>Latest booking requests.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {reservations.slice(0, 4).map((reservation: any) => (
+                                <div key={reservation.id} className="flex items-center justify-between p-2 border-b last:border-0">
+                                    <div className="space-y-1">
+                                        <p className="text-sm font-medium leading-none">
+                                            {reservation.user?.firstName} {reservation.user?.lastName}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {reservation.event?.title}
+                                        </p>
+                                        <div className={`inline-block text-[10px] px-2 py-0.5 rounded-full ${reservation.status === 'Confirmed' ? 'bg-green-500/10 text-green-500' :
+                                            reservation.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500' :
+                                                'bg-red-500/10 text-red-500'
+                                            }`}>
+                                            {reservation.status}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-1">
+                                        {reservation.status === ReservationStatus.PENDING && (
+                                            <>
+                                                <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-100"
+                                                    onClick={() => confirmMutation.mutate(reservation.id)}
+                                                    disabled={confirmMutation.isPending}
+                                                >
+                                                    <CheckCircle className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-100"
+                                                    onClick={() => refuseMutation.mutate(reservation.id)}
+                                                    disabled={refuseMutation.isPending}
+                                                >
+                                                    <XCircle className="h-4 w-4" />
+                                                </Button>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             ))}

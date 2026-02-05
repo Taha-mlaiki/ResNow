@@ -59,22 +59,46 @@ export function Navbar({ token }: NavbarProps) {
                 </Link>
 
                 <div className="hidden md:flex items-center gap-6">
-                    <Link
-                        href="/events"
-                        className={`text-sm font-medium transition-colors hover:text-primary ${pathname === '/events' ? 'text-primary' : 'text-muted-foreground'
-                            }`}
-                    >
-                        Events
-                    </Link>
-
-                    {isLoggedIn && (
+                    {role !== 'Admin' && (
                         <Link
-                            href={dashboardLink}
-                            className={`text-sm font-medium transition-colors hover:text-primary ${pathname === dashboardLink ? 'text-primary' : 'text-muted-foreground'
+                            href="/events"
+                            className={`text-sm font-medium transition-colors hover:text-primary ${pathname === '/events' ? 'text-primary' : 'text-muted-foreground'
                                 }`}
                         >
-                            {dashboardText}
+                            Events
                         </Link>
+                    )}
+
+
+                    {isLoggedIn && (
+                        <>
+                            <Link
+                                href={dashboardLink}
+                                className={`text-sm font-medium transition-colors hover:text-primary ${pathname === dashboardLink ? 'text-primary' : 'text-muted-foreground'
+                                    }`}
+                            >
+                                {dashboardText}
+                            </Link>
+
+                            {role === 'Admin' && (
+                                <>
+                                    <Link
+                                        href="/admin/events"
+                                        className={`text-sm font-medium transition-colors hover:text-primary ${pathname === '/admin/events' ? 'text-primary' : 'text-muted-foreground'
+                                            }`}
+                                    >
+                                        Events
+                                    </Link>
+                                    <Link
+                                        href="/admin/reservations"
+                                        className={`text-sm font-medium transition-colors hover:text-primary ${pathname === '/admin/reservations' ? 'text-primary' : 'text-muted-foreground'
+                                            }`}
+                                    >
+                                        Reservations
+                                    </Link>
+                                </>
+                            )}
+                        </>
                     )}
                 </div>
 
