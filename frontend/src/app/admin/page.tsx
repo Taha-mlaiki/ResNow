@@ -1,10 +1,8 @@
 import { getSession } from '@/lib/auth';
-import { getAllReservations } from '@/lib/api';
-import { AdminReservationList } from '@/components/AdminReservationList';
 import { redirect } from 'next/navigation';
-import styles from '@/app/dashboard/page.module.css';
+import { AdminDashboardClient } from './dashboard-client';
+import { getAllEvents, getAllReservations } from '@/lib/api';
 
-// Admin dashboard revalidates frequently or on action
 export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboardPage() {
@@ -12,36 +10,28 @@ export default async function AdminDashboardPage() {
 
     if (!token) {
         redirect('/login');
-        // Ideally check role here, but we'll let API fail if not admin
-        // Or add logic to decode token if possible
     }
 
-    let reservations = [];
+    let initialEvents = [];
+    let initialReservations = [];
+
     try {
-        reservations = await getAllReservations(token);
-    } catch (err) {
-        // If forbidden, maybe redirect?
-        console.error('Admin Fetch Error:', err);
-        // return <div>Access Denied</div>; // Or styled error
+        const [eventsData, reservationsData] = await Promise.all([
+            getAllEvents(token),
+            getAllReservations(token),
+        ]);
+        initialEvents = eventsData;
+        initialReservations = reservationsData;
+    } catch (e) {
+        console.error('Failed to fetch initial admin data', e);
+        // We can choose to redirect or show empty
     }
 
     return (
-        <main className={styles.main}>
-            <div className="container">
-                <header className={styles.header}>
-                    <h1 className={styles.title}>Admin Dashboard</h1>
-                    <p className={styles.subtitle}>Moderate reservations and manage events</p>
-                </header>
-
-                <section>
-                    <h2 style={{ marginBottom: '1.5rem', fontSize: '1.5rem' }}>Reservations</h2>
-                    {reservations.length > 0 ? (
-                        <AdminReservationList reservations={reservations} />
-                    ) : (
-                        <p>No reservations found or access denied.</p>
-                    )}
-                </section>
-            </div>
-        </main>
+        <AdminDashboardClient
+            token={token}
+            initialEvents={initialEvents}
+            initialReservations={initialReservations}
+        />
     );
 }
