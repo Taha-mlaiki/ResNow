@@ -15,7 +15,7 @@ export class AuthGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
     private reflector: Reflector,
-  ) {}
+  ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // Check if route is marked as public
@@ -34,10 +34,7 @@ export class AuthGuard implements CanActivate {
     }
 
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
-        secret:
-          process.env.JWT_SECRET || 'your-secret-key-change-in-production',
-      });
+      const payload = await this.jwtService.verifyAsync(token);
       // Attach user payload to request object
       request['user'] = payload;
     } catch {
