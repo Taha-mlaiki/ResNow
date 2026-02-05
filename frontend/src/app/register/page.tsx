@@ -1,6 +1,7 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { register } from '@/lib/auth';
 import Link from 'next/link';
 import styles from './page.module.css';
@@ -9,7 +10,7 @@ function SubmitButton() {
     const { pending } = useFormStatus();
     return (
         <button className="btn btn-primary" disabled={pending} style={{ width: '100%' }}>
-            {pending ? 'Creating Account...' : 'Sign Up'}
+            {pending ? 'Create Account' : 'Sign Up'}
         </button>
     );
 }
@@ -19,7 +20,7 @@ export default function RegisterPage({
 }: {
     searchParams: { registered?: string };
 }) {
-    const [state, formAction] = useFormState(register, null);
+    const [state, formAction] = useActionState(register, null);
 
     // If redirected from successful registration (handled in auth.ts via redirect to login? No, auth.ts redirects to login? 
     // Wait, auth.ts redirects to /login?registered=true. This page is /register. 
@@ -34,8 +35,16 @@ export default function RegisterPage({
 
                 <form action={formAction} className={styles.form}>
                     <div className={styles.formGroup}>
-                        <label htmlFor="name">Full Name</label>
-                        <input type="text" id="name" name="name" required placeholder="John Doe" />
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div>
+                                <label htmlFor="firstName">First Name</label>
+                                <input type="text" id="firstName" name="firstName" required placeholder="John" />
+                            </div>
+                            <div>
+                                <label htmlFor="lastName">Last Name</label>
+                                <input type="text" id="lastName" name="lastName" required placeholder="Doe" />
+                            </div>
+                        </div>
                     </div>
 
                     <div className={styles.formGroup}>

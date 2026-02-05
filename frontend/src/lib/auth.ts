@@ -13,6 +13,8 @@ export async function login(prevState: any, formData: FormData) {
         return { error: 'Email and password are required' };
     }
 
+    let redirectPath = null;
+
     try {
         const res = await fetch(`${API_URL}/auth/login`, {
             method: 'POST',
@@ -38,20 +40,31 @@ export async function login(prevState: any, formData: FormData) {
             path: '/',
         });
 
+        if (data.user?.role === 'Admin') {
+            redirectPath = '/admin';
+        } else {
+            redirectPath = '/dashboard';
+        }
+
+        console.log('Login successful, role:', data.user?.role, 'Redirecting to:', redirectPath);
+
     } catch (error) {
         console.error('Login error:', error);
         return { error: 'Failed to login. Please try again.' };
     }
 
-    redirect('/dashboard');
+    if (redirectPath) {
+        redirect(redirectPath);
+    }
 }
 
 export async function register(prevState: any, formData: FormData) {
     const email = formData.get('email');
     const password = formData.get('password');
-    const name = formData.get('name');
+    const firstName = formData.get('firstName');
+    const lastName = formData.get('lastName');
 
-    if (!email || !password || !name) {
+    if (!email || !password || !firstName || !lastName) {
         return { error: 'All fields are required' };
     }
 
@@ -59,7 +72,7 @@ export async function register(prevState: any, formData: FormData) {
         const res = await fetch(`${API_URL}/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password, name, role: 'Participant' }),
+            body: JSON.stringify({ email, password, firstName, lastName, role: 'Participant' }),
             cache: 'no-store',
         });
 

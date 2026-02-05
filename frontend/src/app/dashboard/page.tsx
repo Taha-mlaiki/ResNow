@@ -19,8 +19,12 @@ export default async function DashboardPage() {
     let reservations: Reservation[] = [];
     try {
         reservations = await getMyReservations(token);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Failed to fetch reservations', error);
+        // If unauthorized, redirect to login to refresh token
+        if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+            redirect('/login');
+        }
     }
 
     return (
