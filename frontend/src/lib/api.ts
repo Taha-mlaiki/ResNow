@@ -38,7 +38,9 @@ export async function getMyReservations(token: string) {
     });
 
     if (!res.ok) {
-        throw new Error('Failed to fetch reservations');
+        const errorText = await res.text();
+        console.error('Fetch reservations failed:', res.status, errorText);
+        throw new Error(`Failed to fetch reservations: ${res.status}`);
     }
 
     return res.json();
@@ -79,5 +81,21 @@ export async function getAllEvents(token: string) {
         cache: 'no-store',
     });
     if (!res.ok) throw new Error('Failed to fetch events');
+    return res.json();
+}
+
+export async function getEventAdmin(id: string, token: string): Promise<Event> {
+    const res = await fetch(`${API_URL}/events/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: 'no-store',
+    });
+
+    if (!res.ok) {
+        if (res.status === 404) {
+            throw new Error('Event not found');
+        }
+        throw new Error('Failed to fetch event');
+    }
+
     return res.json();
 }

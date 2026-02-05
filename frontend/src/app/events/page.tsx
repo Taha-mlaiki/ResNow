@@ -3,7 +3,6 @@ import { EventCard } from '@/components/EventCard';
 import { EventGrid } from '@/components/EventGrid';
 import { Event } from '@/types/event';
 import Link from 'next/link';
-import styles from './page.module.css';
 
 // Revalidate every 60 seconds (ISR) or force dynamic if preferred
 // export const revalidate = 60; 
@@ -18,18 +17,18 @@ export default async function EventsPage() {
     }
 
     return (
-        <main className={styles.main}>
-            <div className="container">
-                <header className={styles.header}>
-                    <div className={styles.breadcrumb}>
-                        <Link href="/" className={styles.link}>Home</Link>
-                        <span className={styles.separator}>/</span>
+        <main className="min-h-screen py-24 bg-background">
+            <div className="container mx-auto px-6">
+                <header className="mb-12 text-center md:text-left">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                        <Link href="/" className="hover:text-primary transition-colors">Home</Link>
+                        <span>/</span>
                         <span>Events</span>
                     </div>
-                    <h1 className="gradient-text" style={{ fontSize: '3rem', fontWeight: 800 }}>
+                    <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
                         Upcoming Events
                     </h1>
-                    <p className={styles.subtitle}>
+                    <p className="text-lg text-muted-foreground max-w-2xl">
                         Explore our curated selection of exclusive experiences.
                     </p>
                 </header>
@@ -41,9 +40,9 @@ export default async function EventsPage() {
                         ))}
                     </EventGrid>
                 ) : (
-                    <div className={`${styles.empty} glass`}>
-                        <h2>No events found</h2>
-                        <p>Check back later for new upcoming events.</p>
+                    <div className="flex flex-col items-center justify-center p-12 text-center border rounded-lg bg-card/50 backdrop-blur-sm shadow-sm">
+                        <h2 className="text-2xl font-bold mb-2">No events found</h2>
+                        <p className="text-muted-foreground">Check back later for new upcoming events.</p>
                     </div>
                 )}
             </div>

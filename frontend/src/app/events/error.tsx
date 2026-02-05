@@ -1,8 +1,6 @@
 'use client';
 
 import { useEffect } from 'react';
-import styles from './page.module.css';
-
 export default function Error({
     error,
     reset,
@@ -15,14 +13,14 @@ export default function Error({
     }, [error]);
 
     return (
-        <main className={styles.main}>
-            <div className="container">
-                <div className={`${styles.empty} glass`} style={{ border: '1px solid hsl(var(--destructive) / 0.3)' }}>
-                    <h2 style={{ color: 'hsl(var(--destructive))' }}>Something went wrong!</h2>
-                    <p style={{ marginBottom: '2rem' }}>We couldn&apos;t load the events. Please try again later.</p>
+        <main className="min-h-screen pt-24 pb-16 bg-background">
+            <div className="container mx-auto px-6">
+                <div className="flex flex-col items-center justify-center p-12 text-center border rounded-lg bg-red-500/5 border-red-500/20 backdrop-blur-sm">
+                    <h2 className="text-2xl font-bold mb-4 text-destructive">Something went wrong!</h2>
+                    <p className="text-muted-foreground mb-8">We couldn&apos;t load the events. Please try again later.</p>
                     <button
                         onClick={() => reset()}
-                        className="btn btn-primary"
+                        className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
                     >
                         Try again
                     </button>

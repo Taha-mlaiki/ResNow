@@ -148,9 +148,47 @@ export async function createEventAction(formData: FormData) {
 
     revalidatePath('/admin/events');
     revalidatePath('/events');
-    redirect('/admin/events');
+    redirect('/admin');
 }
 
+
+export async function updateEventAction(id: string, formData: FormData) {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
+    if (!token) return { error: 'Unauthorized' };
+
+    const data = {
+        title: formData.get('title'),
+        description: formData.get('description'),
+        startDate: formData.get('startDate'),
+        endDate: formData.get('endDate'),
+        location: formData.get('location'),
+        capacity: Number(formData.get('capacity')),
+    };
+
+    try {
+        const res = await fetch(`${API_URL}/events/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify(data),
+        });
+
+        if (!res.ok) {
+            const errData = await res.json();
+            return { error: errData.message || 'Failed to update event' };
+        }
+    } catch (e) {
+        return { error: 'Failed to update event' };
+    }
+
+    revalidatePath('/admin');
+    revalidatePath('/events');
+    revalidatePath(`/events/${id}`);
+    redirect('/admin');
+}
 
 export async function publishEventAction(id: string) {
     const cookieStore = await cookies();
@@ -165,7 +203,7 @@ export async function publishEventAction(id: string) {
 
         if (!res.ok) return { error: 'Failed to publish' };
 
-        revalidatePath('/admin/events');
+        revalidatePath('/admin');
         revalidatePath('/events');
         return { success: true };
     } catch (e) {
