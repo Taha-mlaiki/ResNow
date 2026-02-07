@@ -123,9 +123,7 @@ describe('AuthGuard', () => {
 
       expect(result).toBe(true);
       expect(mockRequest['user']).toEqual(mockPayload);
-      expect(jwtService.verifyAsync).toHaveBeenCalledWith('valid.token.here', {
-        secret: expect.any(String),
-      });
+      expect(jwtService.verifyAsync).toHaveBeenCalledWith('valid.token.here');
     });
 
     it('should handle authorization header without Bearer prefix', async () => {

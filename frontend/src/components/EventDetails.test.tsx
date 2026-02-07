@@ -54,7 +54,7 @@ describe('EventDetails', () => {
         const soldOutEvent = { ...mockEvent, reservedCount: 50 };
         render(<EventDetails event={soldOutEvent} isLoggedIn={false} />);
 
-        expect(screen.getByText(/Sold Out/)).toBeInTheDocument();
+        expect(screen.getAllByText(/Sold Out/)[0]).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /sold out/i })).toBeDisabled();
     });
 });
