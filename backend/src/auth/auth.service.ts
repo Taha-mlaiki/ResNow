@@ -4,11 +4,7 @@ import { UsersService } from '../users/services';
 import { PasswordService } from '../users/services';
 import { LoginDto } from '../users/dto';
 
-export interface JwtPayload {
-  sub: string;
-  email: string;
-  role: string;
-}
+import { JwtPayload } from './interfaces';
 
 export interface AuthResponse {
   access_token: string;

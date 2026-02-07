@@ -1,15 +1,16 @@
+import { Response } from 'express';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ReservationsController } from './reservations.controller';
 import { ReservationsService } from './reservations.service';
 import { CreateReservationDto } from './dto';
 import { ReservationStatus } from './enums/reservation-status.enum';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { UserRole } from '../users/enums/user-role.enum';
 import { PdfService } from '../pdf/pdf.service';
 
 describe('ReservationsController', () => {
   let controller: ReservationsController;
   let service: ReservationsService;
-  let pdfService: PdfService;
 
   const mockReservationsService = {
     create: jest.fn(),
@@ -26,7 +27,7 @@ describe('ReservationsController', () => {
   const mockUser = {
     sub: 'user-123',
     email: 'user@example.com',
-    role: 'Participant',
+    role: UserRole.PARTICIPANT,
   };
 
   beforeEach(async () => {
@@ -46,7 +47,6 @@ describe('ReservationsController', () => {
 
     controller = module.get<ReservationsController>(ReservationsController);
     service = module.get<ReservationsService>(ReservationsService);
-    pdfService = module.get<PdfService>(PdfService);
 
     jest.clearAllMocks();
   });
@@ -345,7 +345,7 @@ describe('ReservationsController', () => {
     const mockResponse = {
       setHeader: jest.fn(),
       send: jest.fn(),
-    } as any;
+    } as unknown as Response;
 
     beforeEach(() => {
       mockReservationsService.findOne.mockResolvedValue(mockReservation);

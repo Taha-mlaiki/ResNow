@@ -30,5 +30,4 @@ import { DatabaseModule } from './database/database.module';
     PdfService,
   ],
 })
-export class AppModule { }
-
+export class AppModule {}

@@ -64,8 +64,8 @@ export function EditEventForm({ event }: { event: Event }) {
                 <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">Status:</span>
                     <span className={`text-xs px-2 py-1 rounded-full ${event.status === EventStatus.PUBLISHED
-                            ? 'bg-green-500/10 text-green-500'
-                            : 'bg-yellow-500/10 text-yellow-500'
+                        ? 'bg-green-500/10 text-green-500'
+                        : 'bg-yellow-500/10 text-yellow-500'
                         }`}>
                         {event.status}
                     </span>

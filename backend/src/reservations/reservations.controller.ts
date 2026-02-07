@@ -18,6 +18,7 @@ import { Roles, GetUser } from '../auth/decorators';
 import { UserRole } from '../users/enums/user-role.enum';
 import { PdfService } from '../pdf/pdf.service';
 import { ReservationStatus } from './enums/reservation-status.enum';
+import type { JwtPayload } from '../auth/interfaces';
 
 @Controller('reservations')
 @UseGuards(RolesGuard)
@@ -25,21 +26,21 @@ export class ReservationsController {
   constructor(
     private readonly reservationsService: ReservationsService,
     private readonly pdfService: PdfService,
-  ) { }
+  ) {}
 
   @Post()
   @Roles(UserRole.PARTICIPANT)
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body() createReservationDto: CreateReservationDto,
-    @GetUser() user: any,
+    @GetUser() user: JwtPayload,
   ) {
     return this.reservationsService.create(createReservationDto, user.sub);
   }
 
   @Get('my')
   @Roles(UserRole.PARTICIPANT)
-  async findMyReservations(@GetUser() user: any) {
+  async findMyReservations(@GetUser() user: JwtPayload) {
     return this.reservationsService.findAllByUser(user.sub);
   }
 
@@ -66,7 +67,7 @@ export class ReservationsController {
   @Post(':id/cancel')
   @Roles(UserRole.PARTICIPANT)
   @HttpCode(HttpStatus.OK)
-  async cancel(@Param('id') id: string, @GetUser() user: any) {
+  async cancel(@Param('id') id: string, @GetUser() user: JwtPayload) {
     return this.reservationsService.cancel(id, user.sub);
   }
 
@@ -74,7 +75,7 @@ export class ReservationsController {
   @Roles(UserRole.PARTICIPANT)
   async downloadTicket(
     @Param('id') id: string,
-    @GetUser() user: any,
+    @GetUser() user: JwtPayload,
     @Res() res: Response,
   ) {
     // Find reservation with relations

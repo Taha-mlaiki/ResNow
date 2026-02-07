@@ -14,16 +14,20 @@ import { CreateEventDto, UpdateEventDto } from './dto';
 import { RolesGuard } from '../auth/guards';
 import { Roles, GetUser, Public } from '../auth/decorators';
 import { UserRole } from '../users/enums/user-role.enum';
+import type { JwtPayload } from '../auth/interfaces';
 
 @Controller('events')
 @UseGuards(RolesGuard)
 export class EventsController {
-  constructor(private readonly eventsService: EventsService) { }
+  constructor(private readonly eventsService: EventsService) {}
 
   @Post()
   @Roles(UserRole.ADMIN)
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() createEventDto: CreateEventDto, @GetUser() user: any) {
+  async create(
+    @Body() createEventDto: CreateEventDto,
+    @GetUser() user: JwtPayload,
+  ) {
     return this.eventsService.create(createEventDto, user.sub);
   }
 

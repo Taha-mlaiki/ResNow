@@ -6,6 +6,8 @@ import { CreateReservationDto } from './dto';
 import { EventsService } from '../events/events.service';
 import { EventStatus } from '../events/enums/event-status.enum';
 import { ReservationStatus } from './enums/reservation-status.enum';
+import { User } from '../users/entities/user.entity';
+import { Event } from '../events/entities/event.entity';
 
 @Injectable()
 export class ReservationsService {
@@ -13,7 +15,7 @@ export class ReservationsService {
     @InjectRepository(Reservation)
     private readonly reservationRepository: Repository<Reservation>,
     private readonly eventsService: EventsService,
-  ) { }
+  ) {}
 
   /**
    * Create a new reservation
@@ -59,8 +61,8 @@ export class ReservationsService {
 
     // Create reservation with pending status
     const reservation = this.reservationRepository.create({
-      participant: { id: participantId } as any,
-      event: { id: eventId } as any,
+      participant: { id: participantId } as User,
+      event: { id: eventId } as Event,
       status: ReservationStatus.PENDING,
     });
 

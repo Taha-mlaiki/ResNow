@@ -50,9 +50,10 @@ export class UsersService {
     try {
       const savedUser = await this.userRepository.save(user);
       // Remove password from response
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password: _, ...userWithoutPassword } = savedUser;
       return userWithoutPassword;
-    } catch (error) {
+    } catch {
       throw new InternalServerErrorException('Failed to create user');
     }
   }

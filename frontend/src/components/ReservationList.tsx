@@ -4,16 +4,14 @@ import { Reservation } from '@/types/reservation';
 import { ReservationCard } from './ReservationCard';
 import { cancelReservation } from '@/lib/actions';
 import { useTransition } from 'react';
-import { useRouter } from 'next/navigation';
 
 interface ReservationListProps {
     initialReservations: Reservation[];
     token: string; // Token needed for download? No, use Proxy.
 }
 
-export function ReservationList({ initialReservations }: ReservationListProps) {
-    const [isPending, startTransition] = useTransition();
-    const router = useRouter();
+export function ReservationList({ initialReservations }: Readonly<ReservationListProps>) {
+    const [, startTransition] = useTransition();
 
     const handleCancel = async (id: string) => {
         if (!confirm('Are you sure you want to cancel this reservation?')) return;

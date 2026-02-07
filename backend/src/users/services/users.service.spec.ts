@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+
 import {
   ConflictException,
   InternalServerErrorException,
@@ -13,8 +13,6 @@ import { RegisterDto } from '../dto';
 
 describe('UsersService', () => {
   let service: UsersService;
-  let userRepository: Repository<User>;
-  let passwordService: PasswordService;
 
   const mockUserRepository = {
     findOne: jest.fn(),
@@ -43,8 +41,6 @@ describe('UsersService', () => {
     }).compile();
 
     service = module.get<UsersService>(UsersService);
-    userRepository = module.get<Repository<User>>(getRepositoryToken(User));
-    passwordService = module.get<PasswordService>(PasswordService);
   });
 
   afterEach(() => {

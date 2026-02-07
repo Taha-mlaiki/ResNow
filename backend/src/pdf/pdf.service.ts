@@ -18,10 +18,11 @@ export class PdfService {
         });
 
         const chunks: Buffer[] = [];
-
-        doc.on('data', (chunk) => chunks.push(chunk));
+        doc.on('data', (chunk: Buffer) => chunks.push(chunk));
         doc.on('end', () => resolve(Buffer.concat(chunks)));
-        doc.on('error', reject);
+        doc.on('error', (err) => {
+          reject(err instanceof Error ? err : new Error(String(err)));
+        });
 
         // Header
         doc
@@ -150,7 +151,7 @@ export class PdfService {
 
         doc.end();
       } catch (error) {
-        reject(error);
+        reject(error instanceof Error ? error : new Error(String(error)));
       }
     });
   }
