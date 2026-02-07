@@ -36,8 +36,8 @@ This allows you to spin up the entire stack (Frontend, Backend, Database) with a
    ```
 
 **Access Points:**
-- **Frontend:** [http://localhost:3000](http://localhost:3000)
-- **Backend API:** [http://localhost:3001](http://localhost:3001)
+- **Frontend:** [http://localhost:3001](http://localhost:3001)
+- **Backend API:** [http://localhost:3000](http://localhost:3000)
 
 ### Option 2: Local Development
 
@@ -88,7 +88,7 @@ docker-compose up postgres -d
    *The frontend will start on [http://localhost:3001](http://localhost:3001) (defined in package.json).*
 
 > **⚠️ Note on Ports:**
-> - **Docker Mode:** Frontend `3000`, Backend `3001`.
+> - **Docker Mode:** Frontend `3001`, Backend `3000`.
 > - **Local Mode:** Backend `3000`, Frontend `3001`.
 
 ---
