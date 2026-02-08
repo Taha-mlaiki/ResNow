@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from '../users/dto';
 
 import { JwtPayload } from './interfaces';
-import { PasswordService, UsersService } from 'src/users/services';
+import { PasswordService, UsersService } from '../users/services';
 
 export interface AuthResponse {
   access_token: string;
