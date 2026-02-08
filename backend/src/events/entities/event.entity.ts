@@ -13,46 +13,46 @@ import { User } from '../../users/entities';
 @Entity('events')
 export class Event {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ length: 200 })
-  title: string;
+  title!: string;
 
   @Column('text')
-  description: string;
+  description!: string;
 
   @Column({ type: 'timestamp' })
-  startDate: Date;
+  startDate!: Date;
 
   @Column({ type: 'timestamp' })
-  endDate: Date;
+  endDate!: Date;
 
   @Column({ length: 500 })
-  location: string;
+  location!: string;
 
   @Column({ type: 'int' })
-  capacity: number;
+  capacity!: number;
 
   @Column({ type: 'int', default: 0 })
-  reservedCount: number;
+  reservedCount: number = 0;
 
   @Column({
     type: 'enum',
     enum: EventStatus,
     default: EventStatus.DRAFT,
   })
-  status: EventStatus;
+  status: EventStatus = EventStatus.DRAFT;
 
   @Column({ type: 'uuid' })
-  createdById: string;
+  createdById!: string;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'createdById' })
-  createdBy: User;
+  createdBy!: User;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

@@ -1,10 +1,9 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../users/services';
-import { PasswordService } from '../users/services';
 import { LoginDto } from '../users/dto';
 
 import { JwtPayload } from './interfaces';
+import { PasswordService, UsersService } from 'src/users/services';
 
 export interface AuthResponse {
   access_token: string;

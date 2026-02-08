@@ -4,6 +4,7 @@ import { EventsService } from './events.service';
 import { CreateEventDto, UpdateEventDto } from './dto';
 import { EventStatus } from './enums/event-status.enum';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { UserRole } from '../users/enums/user-role.enum';
 
 describe('EventsController', () => {
   let controller: EventsController;
@@ -55,7 +56,7 @@ describe('EventsController', () => {
     const mockUser = {
       sub: 'user-123',
       email: 'admin@example.com',
-      role: 'Admin',
+      role: UserRole.ADMIN,
     };
 
     it('should create an event', async () => {

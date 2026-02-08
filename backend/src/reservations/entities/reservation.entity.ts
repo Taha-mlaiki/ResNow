@@ -13,24 +13,24 @@ import { ReservationStatus } from '../enums/reservation-status.enum';
 @Entity('reservations')
 export class Reservation {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @ManyToOne(() => User, { eager: true })
-  participant: User;
+  participant!: User;
 
   @ManyToOne(() => Event, { eager: true })
-  event: Event;
+  event!: Event;
 
   @Column({
     type: 'enum',
     enum: ReservationStatus,
     default: ReservationStatus.PENDING,
   })
-  status: ReservationStatus;
+  status: ReservationStatus = ReservationStatus.PENDING;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }
